@@ -5,6 +5,7 @@ from isbn_lookup import get_book_info
 from issue_parser import extract_issues
 from barcode_scanner import scan_isbn
 
+import os
 
 # Cache book information to prevent unnecessary API requests.
 @st.cache_data(ttl=3600)
@@ -20,6 +21,73 @@ st.set_page_config(
     page_icon="📚",
     layout="centered"
 )
+
+# Identify the deployed application version.
+st.caption("Diagnostic Version 2")
+
+# Create a button to test the Google Books API.
+if st.button("Test Google Books Connection"):
+
+    # Retrieve the API key from the environment.
+    api_key = os.environ.get("GOOGLE_BOOKS_API_KEY")
+
+    # Check whether the API key is available.
+    if not api_key:
+        st.error("Google Books API key is missing.")
+
+    else:
+
+        # Configure a direct request to Google Books.
+        url = "https://www.googleapis.com/books/v1/volumes"
+
+        params = {
+            "q": "isbn:9781401263195",
+            "key": api_key
+        }
+
+        try:
+
+            # Send the request directly to Google Books.
+            response = requests.get(url, params=params, timeout=10)
+
+            # Display the HTTP response status.
+            st.write(f"HTTP Status: {response.status_code}")
+
+            # Convert the response into a dictionary.
+            data = response.json()
+
+            # Retrieve the error information if available.
+            error = data.get("error", {})
+
+            # Retrieve the error details.
+            details = error.get("details", [])
+
+            # Display the general error status.
+            st.write("Google Status:", error.get("status", "Unknown"))
+
+            # Display specific error information.
+            for detail in details:
+
+                if detail.get("@type", "").endswith("ErrorInfo"):
+
+                    st.write("Error Reason:", detail.get("reason"))
+
+                    st.write(
+                        "Additional Details:",
+                        detail.get("metadata", {})
+                    )
+
+            # Confirm successful API access.
+            if response.status_code == 200:
+                st.success("Google Books API connection successful.")
+
+        # Handle connection errors without exposing the API key.
+        except requests.exceptions.RequestException:
+            st.error("Unable to connect to Google Books.")
+
+        # Handle responses that do not contain valid JSON.
+        except ValueError:
+            st.error("Google Books returned an unexpected response.")
 
 
 # Display the application's title and description.
