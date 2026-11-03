@@ -33,9 +33,10 @@ st.subheader("Scan a Barcode")
 # Initialise the scanned ISBN.
 scanned_isbn = None
 
-# Allow the user to capture an image using their camera.
+# Allow the user to capture a high-resolution image.
 camera_image = st.camera_input(
-    "Take a picture of the book's ISBN barcode"
+    "Take a picture of the book's ISBN barcode",
+    resolution="1080p"
 )
 
 # Process the captured image.
