@@ -38,10 +38,35 @@ def get_book_info(isbn):
 
                 continue
 
-        # Handle unsuccessful responses without exposing the API key.
+        # Handle unsuccessful Google Books API responses.
         if response.status_code != 200:
+
+            # Attempt to retrieve the API's error information.
+            try:
+                error_data = response.json().get("error", {})
+
+                # Retrieve the general error status.
+                error_status = error_data.get("status", "Unknown")
+
+                # Retrieve the specific error reason when available.
+                errors = error_data.get("errors", [])
+
+                error_reason = (
+                    errors[0].get("reason", "Unknown")
+                    if errors else "Unknown"
+                )
+
+            # Handle responses that do not contain valid JSON.
+            except ValueError:
+                error_status = "Unknown"
+                error_reason = "Unknown"
+
+            # Raise an error without exposing the API key.
             raise RuntimeError(
-                f"Google Books lookup failed (HTTP {response.status_code})."
+                f"Google Books lookup failed "
+                f"(HTTP {response.status_code}). "
+                f"Status: {error_status}. "
+                f"Reason: {error_reason}."
             )
 
         # Convert the API response into a dictionary.
