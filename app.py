@@ -50,6 +50,18 @@ if st.button("Test Google Books Connection"):
             # Send the request directly to Google Books.
             response = requests.get(url, params=params, timeout=10)
 
+            # Display the response's content type.
+            st.write(
+                "Content Type:",
+                response.headers.get("Content-Type", "Unknown")
+            )
+
+            # Remove the API key from the response before displaying it.
+            safe_response = response.text.replace(api_key, "[REDACTED]")
+
+            # Display the first 500 characters of Google's response.
+            st.code(safe_response[:500])
+
             # Display the HTTP response status.
             st.write(f"HTTP Status: {response.status_code}")
 
