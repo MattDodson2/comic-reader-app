@@ -103,9 +103,26 @@ if isbn is not None:
             # Retrieve the book's information from Google Books.
             book = cached_book_lookup(isbn)
 
-        # Handle network and API errors.
-        except (requests.exceptions.RequestException, RuntimeError):
-            st.error("Unable to retrieve book information. Please try again.")
+        # Handle unsuccessful API responses.
+        except RuntimeError as error:
+            st.error(f"Google Books API error: {error}")
+
+        # Handle network connection errors.
+        except requests.exceptions.RequestException as error:
+
+            # Retrieve the HTTP status code if available.
+            response = error.response
+
+            if response is not None:
+                st.error(
+                    f"Google Books returned HTTP {response.status_code}."
+                )
+
+            else:
+                st.error(
+                    "Unable to connect to Google Books. "
+                    "Please check your connection and try again."
+                )
 
         else:
 
