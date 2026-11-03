@@ -17,9 +17,11 @@ def get_book_info(isbn):
 
     url = "https://www.googleapis.com/books/v1/volumes"
 
+    # Configure the Google Books API request.
     params = {
         "q": f"isbn:{isbn}",
-        "key": os.environ["GOOGLE_BOOKS_API_KEY"]
+        "key": os.environ["GOOGLE_BOOKS_API_KEY"],
+        "country": "GB"
     }
 
     # Attempt the request a maximum of three times.
