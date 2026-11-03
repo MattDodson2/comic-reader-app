@@ -2,3 +2,6 @@
 9781779528353   dc finest year one (doesnt work)
 9781799513162   dc finest blind justice
 9781799509844
+
+run locally:
+python -m streamlit run app.py

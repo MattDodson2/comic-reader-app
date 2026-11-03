@@ -2,9 +2,8 @@ import re
 
 
 def expand_issue_range(start, end=None):
-    """
-    Converts an issue number or range into a list of integers.
-    """
+    
+    #Converts an issue number or range into a list of integers.
 
     start = int(start)
 
@@ -13,7 +12,7 @@ def expand_issue_range(start, end=None):
     else:
         end = int(end)
 
-    # Reject invalid or excessively large ranges.
+    # Rejects invalid or excessively large ranges.
     if start > end or end - start > 1000:
         return []
 
@@ -21,20 +20,8 @@ def expand_issue_range(start, end=None):
 
 
 def extract_issues(description):
-    """
-    Extracts comic series titles and their collected issue numbers
-    from a Google Books description.
 
-    Supports:
-        - Multiple comic series
-        - Individual issues
-        - Consecutive issue ranges
-        - Additional issues belonging to the same series
-        - Optional '#' symbols
-        - Series separated by commas or conjunctions
-    """
-
-    # Identify the beginning of the collected issues statement.
+    # Identifies the beginning of the collected issues statement.
     section_pattern = (
         r"\b(?:collects|collecting|"
         r"originally published in single magazine form as)\s+"
@@ -49,17 +36,17 @@ def extract_issues(description):
     if not section_match:
         return []
 
-    # Extract the collected issues statement.
+    # Extracts the collected issues statement.
     collected_text = description[section_match.end():].split(".", 1)[0]
 
-    # Remove publication years immediately preceding issue numbers.
+    # Removes publication years immediately preceding issue numbers.
     collected_text = re.sub(
         r"\((?:18|19|20)\d{2}\)(?=\s+#?\d)",
         "",
         collected_text
     )
 
-    # Identify individual issue numbers and ranges.
+    # Identifies individual issue numbers and ranges.
     issue_pattern = (
         r"(?<![\w])#?(\d+)"
         r"(?:\s*[-–]\s*(\d+))?"
@@ -68,16 +55,16 @@ def extract_issues(description):
 
     results = []
 
-    # Track the current series and our position in the description.
+    # Tracks the current series and our position in the description.
     current_series = None
     previous_end = 0
 
     for match in re.finditer(issue_pattern, collected_text):
 
-        # Extract text preceding the current issue reference.
+        # Extracts text preceding the current issue reference.
         preceding_text = collected_text[previous_end:match.start()]
 
-        # Remove separators and connecting words.
+        # Removes separators and connecting words.
         series = re.sub(r"^[\s,;:]+", "", preceding_text)
 
         series = re.sub(
@@ -92,7 +79,7 @@ def extract_issues(description):
         # If a series title exists, begin tracking a new series.
         if series:
 
-            # Ignore references that do not contain a series name.
+            # Ignores references that do not contain a series name.
             if not re.search(r"[A-Za-z]", series):
                 previous_end = match.end()
                 continue
@@ -104,7 +91,7 @@ def extract_issues(description):
 
             results.append(current_series)
 
-        # Add the issue numbers to the current series.
+        # Adds the issue numbers to the current series.
         if current_series is not None:
 
             start = match.group(1)
@@ -114,10 +101,10 @@ def extract_issues(description):
 
             current_series["issues"].extend(issues)
 
-        # Remember where this issue reference ended.
+        # Remembers where this issue reference ended.
         previous_end = match.end()
 
-    # Remove duplicate issues and sort each issue list.
+    # Removes duplicate issues and sort each issue list.
     for result in results:
         result["issues"] = sorted(set(result["issues"]))
 
