@@ -1,72 +1,108 @@
+
 import re
 
 
 def expand_issue_range(start, end=None):
-    
-    #Converts an issue number or range into a list of integers.
+    """
+    Converts an issue number or range into a list of integers.
+    """
 
+    # Converts the starting issue to an integer
     start = int(start)
 
-    if end is None:
-        end = start
-    else:
-        end = int(end)
+    # Uses the starting issue when no ending issue exists
+    end = int(end) if end is not None else start
 
-    # Rejects invalid or excessively large ranges.
+    # Rejects invalid or excessively large issue ranges
     if start > end or end - start > 1000:
         return []
 
+    # Returns every issue number in the range
     return list(range(start, end + 1))
 
 
 def extract_issues(description):
+    """
+    Extracts comic series titles and issue numbers
+    from a collected edition's description.
+    """
 
-    # Identifies the beginning of the collected issues statement.
+    # Identifies phrases introducing collected issues
     section_pattern = (
         r"\b(?:collects|collecting|"
         r"originally published in single magazine form as)\s+"
     )
 
+    # Searches the description for the collection statement
     section_match = re.search(
         section_pattern,
         description,
         re.IGNORECASE
     )
 
+    # Returns an empty list when no collection statement exists
     if not section_match:
         return []
 
-    # Extracts the collected issues statement.
-    collected_text = description[section_match.end():].split(".", 1)[0]
+    # Extracts the text following the collection phrase
+    collected_text = description[section_match.end():]
 
-    # Removes publication years immediately preceding issue numbers.
+    # Protects volume abbreviations from sentence splitting
     collected_text = re.sub(
-        r"\((?:18|19|20)\d{2}\)(?=\s+#?\d)",
-        "",
-        collected_text
+        r"\bvol\.(?=\s*\d+\s*\))",
+        "vol<DOT>",
+        collected_text,
+        flags=re.IGNORECASE
     )
 
-    # Identifies individual issue numbers and ranges.
-    issue_pattern = (
-        r"(?<![\w])#?(\d+)"
-        r"(?:\s*[-–]\s*(\d+))?"
-        r"(?!\w)"
+    # Keeps the collection statement up to its ending full stop
+    collected_text = re.split(
+        r"\.(?=\s|$)",
+        collected_text,
+        maxsplit=1
+    )[0]
+
+    # Restores the original volume abbreviations
+    collected_text = collected_text.replace("<DOT>", ".")
+
+    # Identifies issues with a hash or an unprefixed range
+    issue_pattern = re.compile(
+        r"(?<!\w)#\s*(\d+)"
+        r"(?:\s*[-–]\s*(\d+))?(?!\w)"
+        r"|"
+        r"(?<![\w#])(\d+)\s*[-–]\s*(\d+)(?!\w)"
     )
 
+    # Initialises the collection results
     results = []
 
-    # Tracks the current series and our position in the description.
+    # Stores the current series and previous match position
     current_series = None
     previous_end = 0
 
-    for match in re.finditer(issue_pattern, collected_text):
+    # Tracks whether the description refers to selected stories
+    partial_collection = False
 
-        # Extracts text preceding the current issue reference.
-        preceding_text = collected_text[previous_end:match.start()]
+    # Processes each issue reference in the description
+    for match in issue_pattern.finditer(collected_text):
 
-        # Removes separators and connecting words.
-        series = re.sub(r"^[\s,;:]+", "", preceding_text)
+        # Retrieves the text before the current issue reference
+        preceding_text = collected_text[
+            previous_end:match.start()
+        ]
 
+        # Checks whether the description introduces selected stories
+        if re.search(
+            r"\bstories?\s+from\b",
+            preceding_text,
+            re.IGNORECASE
+        ):
+            partial_collection = True
+
+        # Removes surrounding punctuation and whitespace
+        series = preceding_text.strip(" \t\n,;:")
+
+        # Removes connecting words from the beginning
         series = re.sub(
             r"^(?:and|or)\b\s*",
             "",
@@ -74,68 +110,59 @@ def extract_issues(description):
             flags=re.IGNORECASE
         )
 
-        series = series.strip(" ,;:")
+        # Removes wording introducing selected stories
+        series = re.sub(
+            r"^stories?\s+from\s+",
+            "",
+            series,
+            flags=re.IGNORECASE
+        )
 
-        # If a series title exists, begin tracking a new series.
+        # Removes publication years while preserving volume numbers
+        series = re.sub(
+            r"\s*\((?:18|19|20)\d{2}\)",
+            "",
+            series
+        ).strip()
+
+        # Creates a new series when a title is identified
         if series:
-
-            # Ignores references that do not contain a series name.
-            if not re.search(r"[A-Za-z]", series):
-                previous_end = match.end()
-                continue
 
             current_series = {
                 "series": series,
                 "issues": []
             }
 
+            # Marks series containing selected stories
+            if partial_collection:
+                current_series["partial"] = True
+
+            # Adds the new series to the collection
             results.append(current_series)
 
-        # Adds the issue numbers to the current series.
+        # Adds the issue numbers to the current series
         if current_series is not None:
 
-            start = match.group(1)
-            end = match.group(2)
+            # Retrieves the issue range from the matching groups
+            if match.group(1) is not None:
+                start = match.group(1)
+                end = match.group(2)
 
-            issues = expand_issue_range(start, end)
+            else:
+                start = match.group(3)
+                end = match.group(4)
 
-            current_series["issues"].extend(issues)
+            # Expands and adds the collected issue numbers
+            current_series["issues"].extend(
+                expand_issue_range(start, end)
+            )
 
-        # Remembers where this issue reference ended.
+        # Stores the ending position of the current match
         previous_end = match.end()
 
-    # Removes duplicate issues and sort each issue list.
+    # Removes duplicate issues and sorts each series
     for result in results:
         result["issues"] = sorted(set(result["issues"]))
 
+    # Returns the identified comic series and issues
     return results
-
-if __name__ == "__main__":
-
-    descriptions = [
-        "Collects Batman #404-407.",
-
-        "Collects Batman #404-407, Detective Comics #575-578.",
-
-        "Collects Batman #404-407, #410, and #412.",
-
-        "Originally published in single magazine form as "
-        "BATMAN: SHADOW OF THE BAT 1-12.",
-
-        "Collects Batman #404-407, #410, Detective Comics #575-578, "
-        "and Batman Annual #11.",
-
-        "Collects Batman #404-407 and Detective Comics #575-578.",
-
-        "Collects Batman #404-407, #410, and #412, "
-        "Detective Comics #575-578 and Batman Annual #11."
-    ]
-
-    for description in descriptions:
-
-        print(f"\nDescription: {description}")
-
-        results = extract_issues(description)
-
-        for result in results:
-            print(result)
