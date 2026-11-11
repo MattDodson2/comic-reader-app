@@ -28,7 +28,8 @@ def get_book_info(isbn):
     except (requests.exceptions.RequestException, RuntimeError, ValueError):
         prh_failed = True
 
-    # Uses PRH when it supplies a description
+    
+    # Returns PRH information when a description is available
     if prh_book and prh_book.get("description", "").strip():
         return prh_book
 

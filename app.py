@@ -125,9 +125,6 @@ if isbn is not None:
                 if book["subtitle"]:
                     st.write(book["subtitle"])
 
-                # Displays the publisher
-                st.write(f"**Publisher:** {book['publisher']}")
-
                 # Checks whether the book has a description
                 if not book["description"].strip():
                     st.warning(

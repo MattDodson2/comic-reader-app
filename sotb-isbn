@@ -2,6 +2,10 @@
 9781779528353   dc finest year one (doesnt work)
 9781799513162   dc finest blind justice
 9781799509844
+9781401246839   bruce wayne murderer
 
 run locally:
 python -m streamlit run app.py
+
+run unit tests:
+python -m unittest discover -s tests -v

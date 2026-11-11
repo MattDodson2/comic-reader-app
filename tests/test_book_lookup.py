@@ -144,35 +144,33 @@ class TestBookLookup(unittest.TestCase):
         self.assertEqual(description, "Collects Robin #1-5.")
 
     
-def test_nested_prh_title_metadata(self):
+    def test_nested_prh_title_metadata(self):
 
-    # Creates a simulated PRH response with nested metadata
-    data = {
-        "status": "ok",
-        "data": {
-            "titles": [
-                {
-                    "isbn": 9781779525932,
-                    "title": "Robin: Tim Drake Compendium Book One",
-                    "consumerImprint": "DC Comics"
-                }
-            ]
+        # Creates a simulated PRH response with nested metadata
+        data = {
+            "status": "ok",
+            "data": {
+                "titles": [
+                    {
+                        "isbn": 9781779525932,
+                        "title": "Robin: Tim Drake Compendium Book One",
+                        "consumerImprint": "DC Comics"
+                    }
+                ]
+            }
         }
-    }
 
-    # Searches for the requested book record
-    result = find_title_record(data, "9781779525932")
+        # Searches for the requested book record
+        result = find_title_record(data, "9781779525932")
 
-    # Checks that the title was identified correctly
-    self.assertEqual(
-        result["title"],
-        "Robin: Tim Drake Compendium Book One"
-    )
+        # Checks that the title was identified correctly
+        self.assertEqual(
+            result["title"],
+            "Robin: Tim Drake Compendium Book One"
+        )
 
-    # Checks that the publisher information was found
-    self.assertEqual(result["consumerImprint"], "DC Comics")
-
-
+        # Checks that the publisher information was found
+        self.assertEqual(result["consumerImprint"], "DC Comics")
 
 if __name__ == "__main__":
 
