@@ -533,6 +533,39 @@ class TestExtractIssues(unittest.TestCase):
         self.assertEqual(results[7]["series"], "Robin")
         self.assertEqual(results[7]["issues"], [98, 99])
 
+    
+    def test_prelude_to_knightfall_stories_from(self):
+
+        # Creates a description using the alternative collection phrase
+        description = (
+            "This volume includes never-before-collected material "
+            "in stories from BATMAN: VENGEANCE OF BANE #1, "
+            "BATMAN #484-491 and DETECTIVE COMICS #654-658."
+        )
+
+        # Extracts the collected comic issues
+        results = extract_issues(description)
+
+        # Defines the expected series and issue numbers
+        expected = [
+            {
+                "series": "BATMAN: VENGEANCE OF BANE",
+                "issues": [1]
+            },
+            {
+                "series": "BATMAN",
+                "issues": list(range(484, 492))
+            },
+            {
+                "series": "DETECTIVE COMICS",
+                "issues": list(range(654, 659))
+            }
+        ]
+
+        # Checks that all three series are correctly identified
+        self.assertEqual(results, expected)
+
+
 
 
 if __name__ == "__main__":

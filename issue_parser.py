@@ -33,7 +33,7 @@ def extract_issues(description):
         r"originally published in single magazine form "
         r"(?:as|in))\s*:?\s*"
     )
-
+    
     # Searches for the collected-issues statement
     section_match = re.search(
         section_pattern,
@@ -41,7 +41,15 @@ def extract_issues(description):
         re.IGNORECASE
     )
 
-    # Returns an empty list when no statement is found
+    # Searches for an alternative collection phrase if needed
+    if not section_match:
+        section_match = re.search(
+            r"\bstories\s+from\s*:?\s*",
+            description,
+            re.IGNORECASE
+        )
+
+    # Returns an empty list when no collection statement is found
     if not section_match:
         return []
 

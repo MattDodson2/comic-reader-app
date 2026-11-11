@@ -131,7 +131,7 @@ def get_prh_book_info(isbn):
     # Define the API endpoint for the supplied ISBN
     url = (
         "https://api.penguinrandomhouse.com"
-        f"/resources/v2/title/domains/PRH.US/titles/{isbn}"
+        f"/resources/v2/title/titles/{isbn}"
     )
 
     # Configure the API request parameters

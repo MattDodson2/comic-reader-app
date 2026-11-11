@@ -31,18 +31,37 @@ st.subheader("Scan a Barcode")
 # Initialises the scanned ISBN
 scanned_isbn = None
 
-# Allows the user to upload or capture a barcode photograph
-camera_image = st.file_uploader(
-    "Take or upload a picture of the book's ISBN barcode",
-    type=["jpg", "jpeg", "png"]
+# Allows the user to select a barcode input method
+input_method = st.radio(
+    "Choose how to scan your ISBN barcode",
+    ["Take a photo", "Upload an image"],
+    horizontal=True
 )
 
-# Processes the captured image
-if camera_image is not None:
+# Opens the device camera when the camera option is selected
+if input_method == "Take a photo":
+
+    # Captures an image of the ISBN barcode
+    uploaded_file = st.camera_input(
+        "Position the ISBN barcode in the frame"
+    )
+
+# Displays the existing image uploader when selected
+else:
+
+    # Allows the user to upload an existing barcode image
+    uploaded_file = st.file_uploader(
+        "Upload an image of the ISBN barcode",
+        type=["jpg", "jpeg", "png"]
+    )
+
+
+# Checks whether a barcode image has been provided
+if uploaded_file is not None:
 
     try:
         # Attempts to identify the ISBN
-        scanned_isbn = scan_isbn(camera_image)
+        scanned_isbn = scan_isbn(uploaded_file)
 
     # Handles images that cannot be processed
     except (OSError, ValueError):
@@ -133,6 +152,20 @@ if isbn is not None:
                     )
 
                 else:
+
+#--------------------------------------------------------------------------------------------
+                    # Retrieves the description supplied by the book database
+                    description = book.get("description") or ""
+
+                    # Creates an expandable panel for inspecting the description
+                    with st.expander("Debug: Book Description"):
+
+                        # Displays which database supplied the book information
+                        st.write(f"Data source: {book.get('source', 'Unknown')}")
+
+                        # Displays the description passed to the issue parser
+                        st.code(description or "No description available", language=None)
+#--------------------------------------------------------------------------------------------
 
                     # Extracts the collected issues
                     results = extract_issues(book["description"])
