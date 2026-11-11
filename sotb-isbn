@@ -6,6 +6,7 @@
 
 run locally:
 python -m streamlit run app.py
+"%USERPROFILE%\crvenv\Scripts\python.exe" -m streamlit run app.py
 
 run unit tests:
 python -m unittest discover -s tests -v

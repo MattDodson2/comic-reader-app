@@ -41,9 +41,11 @@ input_method = st.radio(
 # Opens the device camera when the camera option is selected
 if input_method == "Take a photo":
 
-    # Captures an image of the ISBN barcode
+    # Requests a higher-resolution photograph of the ISBN barcode
     uploaded_file = st.camera_input(
-        "Position the ISBN barcode in the frame"
+        "Position the ISBN barcode in the frame",
+        resolution="1080p",
+        width="stretch"
     )
 
 # Displays the existing image uploader when selected
@@ -152,20 +154,6 @@ if isbn is not None:
                     )
 
                 else:
-
-#--------------------------------------------------------------------------------------------
-                    # Retrieves the description supplied by the book database
-                    description = book.get("description") or ""
-
-                    # Creates an expandable panel for inspecting the description
-                    with st.expander("Debug: Book Description"):
-
-                        # Displays which database supplied the book information
-                        st.write(f"Data source: {book.get('source', 'Unknown')}")
-
-                        # Displays the description passed to the issue parser
-                        st.code(description or "No description available", language=None)
-#--------------------------------------------------------------------------------------------
 
                     # Extracts the collected issues
                     results = extract_issues(book["description"])
